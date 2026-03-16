@@ -10,6 +10,5 @@ install:
     uv sync --all-packages
 
 # Start client locally
-[working-directory: 'client']
 start:
-    uv run --package client python -m sm_client
+    uv run -m sm_client
