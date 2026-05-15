@@ -1,4 +1,6 @@
 import logging
+import sys
+
 import httpx
 
 from sm_client.sensors.base import Metric
@@ -29,10 +31,10 @@ class APIClient:
             else:
                 logger.error(f"Failed to register host: {response.status_code}")
                 logger.error(response.text)
-                exit(1)
+                sys.exit(1)
         except httpx.RequestError as e:
             logger.error(f"Failed to register host: {e}")
-            exit(1)
+            sys.exit(1)
 
     async def get_host_config(self, host_id: str) -> dict:
         """Fetch host configuration from backend."""

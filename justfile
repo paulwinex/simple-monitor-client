@@ -12,3 +12,7 @@ install:
 # Start client locally
 start:
     uv run -m sm_client
+
+
+build:
+    uv run nuitka --standalone --onefile --output-dir=build --remove-output sm_client

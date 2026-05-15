@@ -9,7 +9,7 @@
 # ///
 
 """
-Smart Monitor Client - Collects system metrics and sends to backend.
+Simple Monitor Client - Collects system metrics and sends to backend.
 
 Usage:
     uv run sm_client/__main__.py

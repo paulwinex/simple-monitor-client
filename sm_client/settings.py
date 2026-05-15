@@ -9,8 +9,8 @@ load_dotenv()
 class ClientSettings:
     """Client configuration from environment variables."""
     
-    BACKEND_URL: str = os.getenv("BACKEND_URL", "http://192.168.0.206:8000")
-    HOST_ID: str | None = os.getenv("SMART_MONITOR_HOST_ID")
+    BACKEND_URL: str = os.getenv("SIMPLE_MONITOR_BACKEND_URL", "http://192.168.0.206:8000")
+    HOST_ID: str | None = os.getenv("SIMPLE_MONITOR_HOST_ID")
     
     @classmethod
     def get_host_id(cls) -> str:
