@@ -1,15 +1,21 @@
 import os
 import socket
 from dotenv import load_dotenv
+from pathlib import Path
 
 # Load .env file
-load_dotenv()
+env_file = Path.cwd().joinpath(".env")
+if not env_file.exists():
+    env_file = None
+else:
+    print('Load env file', env_file)
+load_dotenv(env_file)
 
 
 class ClientSettings:
     """Client configuration from environment variables."""
     
-    BACKEND_URL: str = os.getenv("SIMPLE_MONITOR_BACKEND_URL", "http://192.168.0.206:8000")
+    BACKEND_URL: str = os.getenv("SIMPLE_MONITOR_BACKEND_URL", "http://localhost:8000")
     HOST_ID: str | None = os.getenv("SIMPLE_MONITOR_HOST_ID")
     
     @classmethod

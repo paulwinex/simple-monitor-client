@@ -6,6 +6,7 @@ from sm_client.api.client import APIClient
 from sm_client.scheduler.manager import SchedulerManager
 from sm_client.config.manager import ConfigManager
 from sm_client.settings import ClientSettings
+from sm_client.utils import wait_server
 
 # Configure logging
 logging.basicConfig(
@@ -20,10 +21,10 @@ async def main():
     # Load configuration from .env
     host_id = ClientSettings.get_host_id()
     backend_url = ClientSettings.BACKEND_URL
-    
-    logger.info(f"Starting client for host: {host_id}")
     logger.info(f"Backend URL: {backend_url}")
-    
+    await wait_server(backend_url)
+    logger.info(f"Starting client for host: {host_id}")
+
     # Create API client
     api_client = APIClient(base_url=backend_url, host_id=host_id)
     
