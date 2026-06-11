@@ -19,3 +19,4 @@ MANIFEST
 Thumbs.db
 _tmp/
 uv.lock
+build/
