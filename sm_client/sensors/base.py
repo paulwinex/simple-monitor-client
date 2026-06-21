@@ -13,6 +13,13 @@ class Metric(NamedTuple):
     value: int          # Metric value (always int for raw data)
 
 
+class DeviceInfo(NamedTuple):
+    """Information about a discoverable device."""
+    device_id: str      # Unique device identifier (serial, pool name, etc.)
+    label: str          # Human-readable name (model, interface, etc.)
+    details: dict       # Key-value pairs with device-specific data
+
+
 class BaseCollector(ABC):
     """Abstract base class for all collectors."""
     
@@ -30,6 +37,10 @@ class BaseCollector(ABC):
     async def check_availability(self) -> bool:
         """Check if required tools/sensors are available on this host."""
         pass
+    
+    async def get_devices(self) -> list[DeviceInfo]:
+        """Return list of devices this collector can poll."""
+        return [DeviceInfo(device_id=self.device_type, label="", details={})]
     
     def _now_timestamp(self) -> int:
         """Get current timestamp as int."""

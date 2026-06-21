@@ -1,7 +1,7 @@
 from datetime import datetime
 import psutil
 
-from sm_client.sensors.base import BaseCollector, Metric
+from sm_client.sensors.base import BaseCollector, DeviceInfo, Metric
 
 
 class NetCollector(BaseCollector):
@@ -79,6 +79,22 @@ class NetCollector(BaseCollector):
 
         return metrics
     
+    async def get_devices(self) -> list[DeviceInfo]:
+        per_nic = psutil.net_if_stats()
+        interfaces = []
+        for nic in per_nic:
+            nic_lower = nic.lower()
+            if nic_lower == 'lo':
+                continue
+            if any(nic_lower.startswith(x) for x in ['veth', 'fw', 'tap', 'br', 'vmbr', 'docker']):
+                continue
+            interfaces.append(nic)
+        return [DeviceInfo(
+            device_id="net",
+            label="Physical Interfaces",
+            details={"count": len(interfaces), "interfaces": interfaces}
+        )]
+
     @classmethod
     async def check_availability(cls) -> bool:
         """Check if psutil network is available."""

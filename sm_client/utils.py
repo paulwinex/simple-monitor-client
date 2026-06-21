@@ -17,3 +17,56 @@ async def wait_server(url: str, delay: int = 2):
             except KeyboardInterrupt:
                 sys.exit(0)
             await asyncio.sleep(delay)
+
+
+async def check_sensors():
+    """Check and display availability of all registered sensors with their devices."""
+    from sm_client.sensors.registry import COLLECTORS
+
+    print()
+    print("  Sensor Availability Check")
+    print()
+
+    for name, cls in COLLECTORS.items():
+        try:
+            available = await cls.check_availability()
+        except Exception:
+            available = False
+
+        status = "\u2713 Available" if available else "\u2717 Unavailable"
+        print(f"  {name:15s} {status}")
+
+        if available:
+            try:
+                collector = cls(host_id="check")
+                devices = await collector.get_devices()
+                if not devices:
+                    print("    (no devices found)")
+                for dev in devices:
+                    parts = _format_details(dev.details)
+                    suffix = f"  ({parts})" if parts else ""
+                    print(f"    {dev.device_id:12s} {dev.label}{suffix}")
+            except Exception as e:
+                print(f"    (no device info: {e})")
+
+    print()
+
+
+def _format_details(details: dict) -> str:
+    parts = []
+    for k, v in details.items():
+        if k == "cores":
+            parts.append(f"{v} cores")
+        elif k == "total_gb":
+            parts.append(f"{v} GB RAM")
+        elif k == "swap_gb":
+            parts.append(f"{v} GB swap")
+        elif k == "count":
+            parts.append(f"{v} interfaces")
+        elif k == "interfaces":
+            parts.append(", ".join(v))
+        elif k == "type":
+            parts.append(v)
+        else:
+            parts.append(f"{k}: {v}")
+    return ", ".join(parts)

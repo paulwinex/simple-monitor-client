@@ -18,8 +18,13 @@ Or from any directory:
     uv run -m sm_client
 """
 import asyncio
+import sys
 
 from sm_client.app import main
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    if "--check" in sys.argv:
+        from sm_client.utils import check_sensors
+        asyncio.run(check_sensors())
+    else:
+        asyncio.run(main())

@@ -1,6 +1,6 @@
 import psutil
 
-from sm_client.sensors.base import BaseCollector, Metric
+from sm_client.sensors.base import BaseCollector, DeviceInfo, Metric
 
 
 class RAMCollector(BaseCollector):
@@ -124,6 +124,16 @@ class RAMCollector(BaseCollector):
 
         return metrics
     
+    async def get_devices(self) -> list[DeviceInfo]:
+        mem = psutil.virtual_memory()
+        swap = psutil.swap_memory()
+        total_gb = mem.total // (1024 ** 3)
+        swap_gb = swap.total // (1024 ** 3)
+        details = {"total_gb": total_gb}
+        if swap_gb > 0:
+            details["swap_gb"] = swap_gb
+        return [DeviceInfo(device_id="ram", label="System Memory", details=details)]
+
     @classmethod
     async def check_availability(cls) -> bool:
         """Check if psutil is available."""

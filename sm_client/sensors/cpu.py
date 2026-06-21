@@ -1,6 +1,6 @@
 import psutil
 
-from sm_client.sensors.base import BaseCollector, Metric
+from sm_client.sensors.base import BaseCollector, DeviceInfo, Metric
 
 
 class CPUCollector(BaseCollector):
@@ -80,6 +80,19 @@ class CPUCollector(BaseCollector):
             raise
         return metrics
     
+    async def get_devices(self) -> list[DeviceInfo]:
+        cores = psutil.cpu_count(logical=True)
+        model = "Unknown"
+        try:
+            with open('/proc/cpuinfo') as f:
+                for line in f:
+                    if line.startswith('model name'):
+                        model = line.split(':', 1)[1].strip()
+                        break
+        except OSError:
+            pass
+        return [DeviceInfo(device_id="cpu", label=model, details={"cores": cores})]
+
     @classmethod
     async def check_availability(cls) -> bool:
         """Check if psutil is available."""

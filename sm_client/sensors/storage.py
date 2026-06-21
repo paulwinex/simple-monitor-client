@@ -4,7 +4,7 @@ import re
 import os
 from typing import Optional
 
-from sm_client.sensors.base import BaseCollector, Metric
+from sm_client.sensors.base import BaseCollector, DeviceInfo, Metric
 
 
 class StorageCollector(BaseCollector):
@@ -35,7 +35,7 @@ class StorageCollector(BaseCollector):
 
         try:
             # Scan for devices
-            output = await self._run_smartctl(['--scan-open'])
+            output = await self._run_smartctl(['--scan'])
             lines = output.strip().split('\n')
 
             disks = []
@@ -93,7 +93,13 @@ class StorageCollector(BaseCollector):
         """Get device information."""
         try:
             output = await self._run_smartctl(['-a', device])
-            
+        except Exception:
+            info: dict = {'device': device}
+            if 'nvme' in device.lower():
+                info['type'] = 'ssd'
+            return info
+
+        try:
             info = {'device': device, 'type': 'hdd'}
             
             # Parse model
@@ -133,8 +139,8 @@ class StorageCollector(BaseCollector):
                 if info['health'] == 'PASSED':
                     info['health'] = 'ok'
             
-            # Check if SSD (based on rotation rate or model)
-            if 'SSD' in output or 'Solid State' in output:
+            # Check if SSD (based on rotation rate, model, or NVMe)
+            if 'SSD' in output or 'Solid State' in output or 'NVMe' in output:
                 info['type'] = 'ssd'
             
             return info
@@ -210,7 +216,7 @@ class StorageCollector(BaseCollector):
                     
                     # Used space percent
                     if total_bytes > 0:
-                        used_percent = (used_bytes / total_bytes) * 100
+                        used_percent = int((used_bytes / total_bytes) * 100)
                         metrics.append(Metric(
                             host_id=self.host_id,
                             device_id=device_id,
@@ -222,7 +228,7 @@ class StorageCollector(BaseCollector):
                     
                     # Free space percent
                     if total_bytes > 0:
-                        free_percent = (free_bytes / total_bytes) * 100
+                        free_percent = int((free_bytes / total_bytes) * 100)
                         metrics.append(Metric(
                             host_id=self.host_id,
                             device_id=device_id,
@@ -238,6 +244,17 @@ class StorageCollector(BaseCollector):
 
         return metrics
     
+    async def get_devices(self) -> list[DeviceInfo]:
+        disks = await self._scan_disks()
+        return [
+            DeviceInfo(
+                device_id=disk.get('serial', disk['device'].removeprefix('/dev/')),
+                label=disk.get('model', disk['device']),
+                details={"type": disk.get('type', 'hdd')}
+            )
+            for disk in disks
+        ]
+
     @classmethod
     async def check_availability(cls) -> bool:
         """Check if smartctl is available and disks exist."""

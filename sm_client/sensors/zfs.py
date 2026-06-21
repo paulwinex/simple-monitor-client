@@ -3,7 +3,7 @@ import shutil
 import re
 from typing import Optional
 
-from sm_client.sensors.base import BaseCollector, Metric
+from sm_client.sensors.base import BaseCollector, DeviceInfo, Metric
 
 
 class ZFSCollector(BaseCollector):
@@ -198,6 +198,13 @@ class ZFSCollector(BaseCollector):
         
         return metrics
     
+    async def get_devices(self) -> list[DeviceInfo]:
+        pools = await self._get_pools()
+        return [
+            DeviceInfo(device_id=pool['name'], label=pool['name'], details={})
+            for pool in pools
+        ]
+
     @classmethod
     async def check_availability(cls) -> bool:
         """Check if zfs/zpool is available."""
