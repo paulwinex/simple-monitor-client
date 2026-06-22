@@ -70,3 +70,55 @@ def _format_details(details: dict) -> str:
         else:
             parts.append(f"{k}: {v}")
     return ", ".join(parts)
+
+
+async def scan_sensors():
+    """Scan all available sensors and print their current values."""
+    from collections import defaultdict
+    from sm_client.sensors.registry import COLLECTORS
+
+    print()
+    print("  Sensor Scan")
+    print()
+
+    has_data = False
+
+    for name, cls in COLLECTORS.items():
+        try:
+            available = await cls.check_availability()
+        except Exception:
+            available = False
+
+        if not available:
+            continue
+
+        try:
+            collector = cls(host_id="scan")
+            metrics = await collector.collect()
+        except Exception as e:
+            print(f"  {name}: error collecting - {e}")
+            print()
+            continue
+
+        if not metrics:
+            print(f"  {name}: no metrics returned")
+            print()
+            continue
+
+        has_data = True
+
+        by_device: dict[str, list] = defaultdict(list)
+        for m in metrics:
+            by_device[m.device_id].append(m)
+
+        print(f"  {name}")
+
+        for device_id, device_metrics in by_device.items():
+            print(f"    {device_id}")
+            for m in device_metrics:
+                print(f"      {m.name:20s} {m.value}")
+        print()
+
+    if not has_data:
+        print("  No sensors with data found.")
+        print()
