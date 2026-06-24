@@ -149,9 +149,7 @@ class StorageCollector(BaseCollector):
     
     async def collect(self) -> list[Metric]:
         """Collect storage metrics from all disks."""
-        # Scan disks if not done yet
-        if not self._disks:
-            self._disks = await self._scan_disks()
+        self._disks = await self._scan_disks()
 
         metrics = []
         now = self._now_timestamp()
